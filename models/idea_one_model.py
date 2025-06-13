@@ -45,18 +45,49 @@ drop_cols = ['Crime_Occurances','Unnamed: 28']
 # remove any underscores in column names
 df.columns = df.columns.str.replace('_', '', regex=False)
 df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
-df.drop('Unnamed: 28', axis=1, inplace=True)
+#df.drop('Unnamed: 28', axis=1, inplace=True)
 df = df.dropna()
 
 #%% 
-# get bins 
-labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
+# define upper and lower bounds for the saftey based on the user input
+crime_rate_bounds = {
+    1: (0, 0.02),   # very low
+    2: (0.02, 0.04), # low
+    3: (0.04, 0.07), # medium
+    4: (0.07, 0.12), # high
+    5: (0.12 , float('inf')) # very high
+}
+affordability_bounds = {
+    1: (0, 1307),   # very low
+    2: (1307, 1404), # low
+    3: (1404, 1509), # medium
+    4: (1509, 1519), # high
+    5: (1519, float('inf')) # very high
+}
 
+transit_bounds = {
+    1: (0, 37),   # very low
+    2: (37, 44), # low
+    3: (44, 48), # medium
+    4: (48, 56), # high
+    5: (56, float('inf')) # very high
+}
 
-df['bike_levels'] = pd.qcut(df['BikeScore'], q=5, labels=labels)
-_, bins = pd.qcut(df['BikeScore'], q=5, retbins=True)
-print(bins)
+walkability_bounds = {  
+    1: (0, 24),   # very low
+    2: (24, 31), # low
+    3: (31, 39), # medium
+    4: (39, 55), # high
+    5: (55, float('inf')) # very high
+}
 
+bikeability_bounds = {
+    1: (0, 26),   # very low
+    2: (26, 32), # low
+    3: (32, 39), # medium
+    4: (39, 47), # high
+    5: (47, float('inf')) # very high
+}
 
 #%%%
 
