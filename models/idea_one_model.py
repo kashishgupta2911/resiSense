@@ -39,7 +39,7 @@ print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_afford
 
 #%%
 # load and preprocess your data
-df = pd.read_csv('/Users/mylayambao/Downloads/idea_one_data4.csv')
+df = pd.read_csv('/Users/mylayambao/resiSense/data/idea_one/idea_one_data4.csv')
 drop_cols = ['Crime_Occurances','Unnamed: 28']
 
 # remove any underscores in column names
