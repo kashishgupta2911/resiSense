@@ -50,6 +50,15 @@ df = df.dropna()
 
 #%% 
 # define upper and lower bounds for the saftey based on the user input
+
+# input is a dictionary 
+user_input = {
+    'crimerate': user_safety_rating,
+    'affordability': user_affordability_rating,
+    'transitscore': user_tranist_rating,
+    'walkscore': user_walkability_rating,
+    'bikescore': user_bikeability_rating
+}
 crime_rate_bounds = {
     1: (0, 0.02),   # very low
     2: (0.02, 0.04), # low
@@ -89,17 +98,65 @@ bikeability_bounds = {
     5: (47, float('inf')) # very high
 }
 
+# bounds dict
+bounds_dict = {
+    'crimerate': crime_rate_bounds,
+    'affordability': affordability_bounds,
+    'transitscore': transit_bounds,
+    'walkscore': walkability_bounds,
+    'bikescore': bikeability_bounds
+}
+
+column_map = {
+    'crimerate': 'CrimeRate',
+    'affordability': 'rent2024', 
+    'transitscore': 'TransitScore', 
+    'walkscore': 'WalkScore',
+    'bikescore': 'BikeScore'
+}
+
+ #%%
+
+# filter the dataframe based on user input
+filtered_df = df.copy()
+
+# drop unneeded columns
+filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation', 
+                                         'CityZone', 'CMHCZone', 'CrimeOccurances', 
+                                         'SupportiveHousingCount', 'SupportiveUnits', 
+                                         'SheltersCount','Distance to U of A (km)',
+                                        'Distance to MacEwan (km)', 
+                                        'Distance to NAIT (km)', 
+                                        'Distance to Concordia (km)',
+                                        'Distance to NorQuest (km)','NeighbourhoodName', 'Population', ], axis=1)
+
+
+for key, value in user_input.items():
+    if key in bounds_dict:
+        lower_bound, upper_bound = bounds_dict[key][value]
+        column_name = column_map[key]
+        filtered_df = filtered_df[(filtered_df[column_name] >= lower_bound) & (filtered_df[column_name] <= upper_bound)]
+
+bound_crime_occurances = [bounds_dict[key][value][0], bounds_dict[key][value][1]]
+print(bound_crime_occurances)
+bound_transit_scores = []
+bound_walk_scores = []
+bound_bike_scores = []
+bound_affordability = []
+
+print(filtered_df)
+
 #%%%
 
-X = df.drop(columns=['rent2024', 'NeighbourhoodNumber', 'CenterLocation', 
-                     'CityZone', 'CMHCZone', 'CrimeOccurances', 
+X = df.drop(columns=['rent2024', 'rent2025','NeighbourhoodNumber', 'CenterLocation', 
+                     'CityZone', 'CMHCZone', 'CrimeRate', 
                      'SupportiveHousingCount', 'SupportiveUnits', 
                      'SheltersCount','Distance to U of A (km)',
                     'Distance to MacEwan (km)', 
                     'Distance to NAIT (km)', 
                     'Distance to Concordia (km)',
-                    'Distance to NorQuest (km)'], axis=1)
-print(X.dtypes)
+                    'Distance to NorQuest (km)', 'NewResidentialUnits2023','NumCurrentListings','Population' ], axis=1)
+#print(X.dtypes)
 
 y = df['rent2024']
 
@@ -124,6 +181,8 @@ names = X_test['NeighbourhoodName'].values
 # Drop NeighbourhoodName from X_train and X_test
 X_test = X_test.drop('NeighbourhoodName', axis=1)
 X_train = X_train.drop('NeighbourhoodName', axis=1)
+
+print(X_train.dtypes)
 
 #%%
 model = MLPRegressor(random_state=1,max_iter=2000,tol=0.1, hidden_layer_sizes=5)
