@@ -67,11 +67,11 @@ user_input = {
     'bikescore': user_bikeability_rating
 }
 crime_rate_bounds = {
-    1: (0, 0.02),   # very low
-    2: (0.02, 0.04), # low
+    1: (0.12 , 16.42),   # very low
+    2: (0.07, 0.12), # low
     3: (0.04, 0.07), # medium
-    4: (0.07, 0.12), # high
-    5: (0.12 , 16.42) # very high
+    4: (0.02, 0.04), # high
+    5: (0, 0.02) # very high
 }
 affordability_bounds = {
     1: (1079, 1128),   # very low
@@ -152,11 +152,17 @@ bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
 #%%
 # make a "hypothetical" dataframe with the combinations of the bounds lists
 # the order for each row should be bound_affordability2019, bound_affordability2020, bound_affordability2021, bound_affordability2022, bound_affordability ,bound_crime_occurances, bound_walk_scores, bound_transit_scores, bound_bike_scores
-combo_lists = [
+# Group the historical values
+historical_affordability_bounds = list(zip(
     bound_affordability2019,
     bound_affordability2020,
     bound_affordability2021,
-    bound_affordability2022,
+    bound_affordability2022
+))
+
+# Other bounds stay the same
+combo_lists = [
+    historical_affordability_bounds,  # treated as 1 axis with tuples
     bound_affordability,
     bound_crime_occurances,
     bound_walk_scores,
@@ -166,11 +172,22 @@ combo_lists = [
 
 all_combinations = list(product(*combo_lists))
 
+# flatten tuples
+combo_df = pd.DataFrame(all_combinations, columns=[
+    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+])
+
+# split historical affordability into separate columns
+combo_df[['rent2019', 'rent2020', 'rent2021', 'rent2022']] = pd.DataFrame(combo_df['historical_afford'].tolist(), index=combo_df.index)
+
+# drop the grouped column
+combo_df = combo_df.drop(columns=['historical_afford'])
+
 columns = [
     'rent2019', 'rent2020', 'rent2021', 'rent2022',
     'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
 ]
-combo_df = pd.DataFrame(all_combinations, columns=columns)
+combo_df = combo_df[columns]
 print(combo_df)
 
 
@@ -250,8 +267,6 @@ print(f'Mean Absolute Error: {mae:.4f}')
 #%%
 # TEST THE MODEL USING THE NEW COMBO DATAFRAME
 y_pred_using_combo = model.predict(combo_df)
-
-print(y_pred_using_combo)
 
 # print the columns and the predictions
 for i in range(len(y_pred_using_combo)):
