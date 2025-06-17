@@ -1,5 +1,6 @@
 # %%
 import pandas as pd
+from itertools import product
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 # from lightgbm import LGBMRegressor
@@ -10,8 +11,8 @@ from sklearn.preprocessing import StandardScaler
 
 #%%
 # get user input for their needs
-user_safety_rating = input("How important is safety to you? (1-5): ")
-user_safety_rating = int(user_safety_rating)
+user_safety_rating = int(input("How important is safety to you? (1-5): "))
+# user_safety_rating = int(user_safety_rating)
 if user_safety_rating < 1 or user_safety_rating > 5:
     raise ValueError("Safety rating must be between 1 and 5.")
 
@@ -39,7 +40,7 @@ print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_afford
 
 #%%
 # load and preprocess your data
-df = pd.read_csv('/Users/mylayambao/resiSense/data/idea_one/idea_one_data4.csv')
+df = pd.read_csv('/home/kashish/desktop/resiSense/data/idea_one/idea_one_data4.csv')
 drop_cols = ['Crime_Occurances','Unnamed: 28']
 
 # remove any underscores in column names
@@ -47,6 +48,95 @@ df.columns = df.columns.str.replace('_', '', regex=False)
 df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
 #df.drop('Unnamed: 28', axis=1, inplace=True)
 df = df.dropna()
+
+#%%
+# %% Clustering Section
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Check that the columns exist
+print("df columns:", df.columns.tolist())
+
+# Select columns that are safe and valid for clustering
+clustering_features = df[[
+    'CrimeRate', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
+    'TransitScore', 'WalkScore', 'BikeScore'
+]]
+
+# Normalize the features
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(clustering_features)
+
+# Optional: Elbow method to decide best k
+inertia = []
+for k in range(1, 11):
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
+    kmeans.fit(scaled_features)
+    inertia.append(kmeans.inertia_)
+
+# Save elbow plot
+plt.figure(figsize=(8, 4))
+plt.plot(range(1, 11), inertia, marker='o')
+plt.title('Elbow Method for Optimal k')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Inertia')
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("elbow_plot.png")
+plt.close()
+
+# Fit final model with k=4 (or change this after checking elbow plot)
+kmeans = KMeans(n_clusters=12, random_state=42, n_init='auto')
+df['Cluster'] = kmeans.fit_predict(scaled_features)
+
+# View clusters
+print("\n Neighborhoods by Cluster:")
+print(df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster'))
+
+# Apply PCA for 2D visualization
+pca = PCA(n_components=2)
+pca_result = pca.fit_transform(scaled_features)
+df['pca1'] = pca_result[:, 0]
+df['pca2'] = pca_result[:, 1]
+
+# Save PCA cluster scatterplot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x='pca1', y='pca2', hue='Cluster', palette='tab10', s=80)
+plt.title("Neighborhood Clusters (PCA Projection)")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("clusters.png")
+plt.close()
+
+#Cluster interpretation summary
+summary = df.groupby('Cluster')[[
+    'CrimeRate', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
+    'TransitScore', 'WalkScore', 'BikeScore'
+]].mean().round(2)
+
+print("\nCluster Summary:")
+print(summary)
+
+# Print sample neighborhoods from each cluster
+for i in range(12):
+    print(f"\nCluster {i} neighborhoods:")
+    print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
+
+#  Drop clustering columns before model training to avoid prediction errors
+df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
+
+
+
+#%%
+# labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
+# df['rent_2023_category'], bins = pd.qcut(df['rent2023'], q=5, labels=labels, retbins=True)
+# print(bins)
+
 
 #%% 
 # define upper and lower bounds for the saftey based on the user input
@@ -60,18 +150,18 @@ user_input = {
     'bikescore': user_bikeability_rating
 }
 crime_rate_bounds = {
-    1: (0, 0.02),   # very low
-    2: (0.02, 0.04), # low
+    1: (0.12 , 16.42),   # very low
+    2: (0.07, 0.12), # low
     3: (0.04, 0.07), # medium
-    4: (0.07, 0.12), # high
-    5: (0.12 , float('inf')) # very high
+    4: (0.02, 0.04), # high
+    5: (0, 0.02) # very high
 }
 affordability_bounds = {
-    1: (0, 1307),   # very low
-    2: (1307, 1404), # low
-    3: (1404, 1509), # medium
-    4: (1509, 1519), # high
-    5: (1519, float('inf')) # very high
+    1: (1079, 1128),   # very low
+    2: (1129, 1316), # low
+    3: (1317, 1364), # medium
+    4: (1365, 1409), # high
+    5: (1410, 1430) # very high
 }
 
 transit_bounds = {
@@ -79,7 +169,7 @@ transit_bounds = {
     2: (37, 44), # low
     3: (44, 48), # medium
     4: (48, 56), # high
-    5: (56, float('inf')) # very high
+    5: (56, 78) # very high
 }
 
 walkability_bounds = {  
@@ -87,7 +177,7 @@ walkability_bounds = {
     2: (24, 31), # low
     3: (31, 39), # medium
     4: (39, 55), # high
-    5: (55, float('inf')) # very high
+    5: (55, 89) # very high
 }
 
 bikeability_bounds = {
@@ -95,7 +185,7 @@ bikeability_bounds = {
     2: (26, 32), # low
     3: (32, 39), # medium
     4: (39, 47), # high
-    5: (47, float('inf')) # very high
+    5: (47, 92) # very high
 }
 
 # bounds dict
@@ -131,25 +221,67 @@ filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation',
                                         'Distance to NorQuest (km)','NeighbourhoodName', 'Population', ], axis=1)
 
 
-for key, value in user_input.items():
-    if key in bounds_dict:
-        lower_bound, upper_bound = bounds_dict[key][value]
-        column_name = column_map[key]
-        filtered_df = filtered_df[(filtered_df[column_name] >= lower_bound) & (filtered_df[column_name] <= upper_bound)]
 
-bound_crime_occurances = [bounds_dict[key][value][0], bounds_dict[key][value][1]]
-print(bound_crime_occurances)
-bound_transit_scores = []
-bound_walk_scores = []
-bound_bike_scores = []
-bound_affordability = []
+bound_affordability = list(bounds_dict['affordability'][user_input['affordability']])
+bound_affordability2019 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2019'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2019'].max()]
+bound_affordability2020 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2020'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2020'].max()]
+bound_affordability2021 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2019'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2021'].max()]
+bound_affordability2022 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2022'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2022'].max()]
+bound_crime_occurances = list(bounds_dict['crimerate'][user_input['crimerate']])
+bound_transit_scores = list(bounds_dict['transitscore'][user_input['transitscore']])
+bound_walk_scores = list(bounds_dict['walkscore'][user_input['walkscore']])
+bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
 
-print(filtered_df)
+#%%
+# make a "hypothetical" dataframe with the combinations of the bounds lists
+# the order for each row should be bound_affordability2019, bound_affordability2020, bound_affordability2021, bound_affordability2022, bound_affordability ,bound_crime_occurances, bound_walk_scores, bound_transit_scores, bound_bike_scores
+# Group the historical values
+historical_affordability_bounds = list(zip(
+    bound_affordability2019,
+    bound_affordability2020,
+    bound_affordability2021,
+    bound_affordability2022
+))
+
+# Other bounds stay the same
+combo_lists = [
+    historical_affordability_bounds,  # treated as 1 axis with tuples
+    bound_affordability,
+    bound_crime_occurances,
+    bound_walk_scores,
+    bound_transit_scores,
+    bound_bike_scores
+]
+
+all_combinations = list(product(*combo_lists))
+
+# flatten tuples
+combo_df = pd.DataFrame(all_combinations, columns=[
+    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+])
+
+# split historical affordability into separate columns
+combo_df[['rent2019', 'rent2020', 'rent2021', 'rent2022']] = pd.DataFrame(combo_df['historical_afford'].tolist(), index=combo_df.index)
+
+# drop the grouped column
+combo_df = combo_df.drop(columns=['historical_afford'])
+
+columns = [
+    'rent2019', 'rent2020', 'rent2021', 'rent2022',
+    'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+]
+combo_df = combo_df[columns]
+print(combo_df)
+
+
+
+
+
 
 #%%%
 
 X = df.drop(columns=['rent2024', 'rent2025','NeighbourhoodNumber', 'CenterLocation', 
-                     'CityZone', 'CMHCZone', 'CrimeRate', 
+                     'CityZone', 'CMHCZone', 'CrimeOccurances', 
                      'SupportiveHousingCount', 'SupportiveUnits', 
                      'SheltersCount','Distance to U of A (km)',
                     'Distance to MacEwan (km)', 
@@ -184,6 +316,7 @@ X_train = X_train.drop('NeighbourhoodName', axis=1)
 
 print(X_train.dtypes)
 
+
 #%%
 model = MLPRegressor(random_state=1,max_iter=2000,tol=0.1, hidden_layer_sizes=5)
 model.fit(X_train, y_train)
@@ -214,5 +347,12 @@ print(f'Root Mean Squared Error: {rmse:.4f}')
 print(f'Mean Absolute Error: {mae:.4f}')
 
 
+#%%
+# TEST THE MODEL USING THE NEW COMBO DATAFRAME
+y_pred_using_combo = model.predict(combo_df)
+
+# print the columns and the predictions
+for i in range(len(y_pred_using_combo)):
+    print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
 
 # %%
