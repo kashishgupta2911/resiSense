@@ -11,8 +11,8 @@ from sklearn.preprocessing import StandardScaler
 
 #%%
 # get user input for their needs
-user_safety_rating = input("How important is safety to you? (1-5): ")
-user_safety_rating = int(user_safety_rating)
+user_safety_rating = int(input("How important is safety to you? (1-5): "))
+# user_safety_rating = int(user_safety_rating)
 if user_safety_rating < 1 or user_safety_rating > 5:
     raise ValueError("Safety rating must be between 1 and 5.")
 
@@ -40,7 +40,7 @@ print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_afford
 
 #%%
 # load and preprocess your data
-df = pd.read_csv('/Users/mylayambao/resiSense/data/idea_one/idea_one_data4.csv')
+df = pd.read_csv('/home/kashish/desktop/resiSense/data/idea_one/idea_one_data4.csv')
 drop_cols = ['Crime_Occurances','Unnamed: 28']
 
 # remove any underscores in column names
@@ -50,6 +50,92 @@ df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary co
 df = df.dropna()
 
 #%%
+
+=======
+# %% Clustering Section
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Check that the columns exist
+print("df columns:", df.columns.tolist())
+
+# Select columns that are safe and valid for clustering
+clustering_features = df[[
+    'CrimeRate', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
+    'TransitScore', 'WalkScore', 'BikeScore'
+]]
+
+# Normalize the features
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(clustering_features)
+
+# Optional: Elbow method to decide best k
+inertia = []
+for k in range(1, 11):
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
+    kmeans.fit(scaled_features)
+    inertia.append(kmeans.inertia_)
+
+# Save elbow plot
+plt.figure(figsize=(8, 4))
+plt.plot(range(1, 11), inertia, marker='o')
+plt.title('Elbow Method for Optimal k')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Inertia')
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("elbow_plot.png")
+plt.close()
+
+# Fit final model with k=4 (or change this after checking elbow plot)
+kmeans = KMeans(n_clusters=12, random_state=42, n_init='auto')
+df['Cluster'] = kmeans.fit_predict(scaled_features)
+
+# View clusters
+print("\n Neighborhoods by Cluster:")
+print(df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster'))
+
+# Apply PCA for 2D visualization
+pca = PCA(n_components=2)
+pca_result = pca.fit_transform(scaled_features)
+df['pca1'] = pca_result[:, 0]
+df['pca2'] = pca_result[:, 1]
+
+# Save PCA cluster scatterplot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x='pca1', y='pca2', hue='Cluster', palette='tab10', s=80)
+plt.title("Neighborhood Clusters (PCA Projection)")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("clusters.png")
+plt.close()
+
+#Cluster interpretation summary
+summary = df.groupby('Cluster')[[
+    'CrimeRate', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
+    'TransitScore', 'WalkScore', 'BikeScore'
+]].mean().round(2)
+
+print("\nCluster Summary:")
+print(summary)
+
+# Print sample neighborhoods from each cluster
+for i in range(12):
+    print(f"\nCluster {i} neighborhoods:")
+    print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
+
+#  Drop clustering columns before model training to avoid prediction errors
+df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
+
+
+
+#%%
+
 # labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
 # df['rent_2023_category'], bins = pd.qcut(df['rent2023'], q=5, labels=labels, retbins=True)
 # print(bins)
@@ -152,7 +238,10 @@ bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
 #%%
 # make a "hypothetical" dataframe with the combinations of the bounds lists
 
+
 # group the historical values
+
+
 historical_affordability_bounds = list(zip(
     bound_affordability2019,
     bound_affordability2020,
@@ -265,6 +354,7 @@ print(f'Mean Absolute Error: {mae:.4f}')
 #%%
 # TEST THE MODEL USING THE NEW COMBO DATAFRAME
 y_pred_using_combo = model.predict(combo_df)
+
 
 
 # print the columns and the predictions
