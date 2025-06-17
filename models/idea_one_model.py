@@ -45,8 +45,8 @@ drop_cols = ['Crime_Occurances','Unnamed: 28']
 
 # remove any underscores in column names
 df.columns = df.columns.str.replace('_', '', regex=False)
-df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
-#df.drop('Unnamed: 28', axis=1, inplace=True)
+#df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
+df.drop('Unnamed: 28', axis=1, inplace=True)
 df = df.dropna()
 
 
@@ -62,8 +62,8 @@ print("df columns:", df.columns.tolist())
 
 # Select columns that are safe and valid for clustering
 clustering_features = df[[
-    'CrimeOccurances', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
-    'TransitScore', 'WalkScore', 'BikeScore'
+    'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
+    'WalkScore', 'TransitScore','BikeScore', 'rent2024'
 ]]
 
 # Normalize the features
@@ -89,7 +89,7 @@ plt.savefig("elbow_plot.png")
 plt.close()
 
 # Fit final model with k=4 (or change this after checking elbow plot)
-kmeans = KMeans(n_clusters=12, random_state=42, n_init='auto')
+kmeans = KMeans(n_clusters=30, random_state=42, n_init='auto')
 df['Cluster'] = kmeans.fit_predict(scaled_features)
 
 # View clusters
@@ -113,23 +113,33 @@ plt.tight_layout()
 plt.savefig("clusters.png")
 plt.close()
 
+print(df)
+
 #Cluster interpretation summary
 summary = df.groupby('Cluster')[[
-    'CrimeOccurances', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
-    'TransitScore', 'WalkScore', 'BikeScore'
+   'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
+     'WalkScore', 'TransitScore','BikeScore', 'rent2024'
 ]].mean().round(2)
 
 print("\nCluster Summary:")
 print(summary)
 
 # Print sample neighborhoods from each cluster
-for i in range(12):
+for i in range(30):
     print(f"\nCluster {i} neighborhoods:")
     print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
 
 #  Drop clustering columns before model training to avoid prediction errors
 df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
 
+
+#%% 
+# save the clustering model
+kmeans_model_path = 'kmeans_model.pkl'
+import joblib
+joblib.dump(kmeans, kmeans_model_path)
+# Print confirmation
+print(f"KMeans saved")
 
 #%% 
 # define upper and lower bounds for the saftey based on the user input
@@ -191,7 +201,7 @@ bounds_dict = {
 }
 
 column_map = {
-    'crimerate': 'CrimeOccurances',
+    'crimerate': 'CrimeRate',
     'affordability': 'rent2024', 
     'transitscore': 'TransitScore', 
     'walkscore': 'WalkScore',
@@ -205,7 +215,7 @@ filtered_df = df.copy()
 
 # drop unneeded columns
 filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation', 
-                                         'CityZone', 'CMHCZone', 'CrimeOccurances', 
+                                         'CityZone', 'CMHCZone', 'CrimeRate', 
                                          'SupportiveHousingCount', 'SupportiveUnits', 
                                          'SheltersCount','Distance to U of A (km)',
                                         'Distance to MacEwan (km)', 
@@ -253,7 +263,7 @@ all_combinations = list(product(*combo_lists))
 
 # flatten tuples
 combo_df = pd.DataFrame(all_combinations, columns=[
-    'historical_afford', 'rent2023', 'CrimeOccurances', 'WalkScore', 'TransitScore', 'BikeScore'
+    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
 ])
 
 # split historical affordability into separate columns
@@ -264,7 +274,7 @@ combo_df = combo_df.drop(columns=['historical_afford'])
 
 columns = [
     'rent2019', 'rent2020', 'rent2021', 'rent2022',
-    'rent2023', 'CrimeOccurances', 'WalkScore', 'TransitScore', 'BikeScore'
+    'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
 ]
 combo_df = combo_df[columns]
 print(combo_df)
@@ -351,5 +361,47 @@ for i in range(len(y_pred_using_combo)):
     print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
 
 # %%
+# store the hypothetical neighborhoods with rent estimates in a new dataframe
+hypothetical_neighborhoods = combo_df.copy()
+hypothetical_neighborhoods['rent2024'] = y_pred_using_combo
+print(hypothetical_neighborhoods)
 
 
+# %%
+# use the kmeans saved kmeans model to predict the cluster for each hypothetical neighborhood
+# Load the saved KMeans model
+kmeans = joblib.load('/Users/mylayambao/resiSense/models/kmeans_model.pkl')
+# Predict clusters for the hypothetical neighborhoods
+hypothetical_neighborhoods_scaled = scaler.transform(hypothetical_neighborhoods)
+hypothetical_neighborhoods['Cluster'] = kmeans.predict(hypothetical_neighborhoods_scaled)
+# Print the hypothetical neighborhoods with clusters
+print("\nHypothetical Neighborhoods with Clusters:")
+print(hypothetical_neighborhoods[['rent2024', 'Cluster']])
+# %%
+print(hypothetical_neighborhoods)
+
+# %%
+
+# Apply PCA for 2D visualization
+pca = PCA(n_components=2)
+pca_result = pca.fit_transform(hypothetical_neighborhoods_scaled)
+hypothetical_neighborhoods['pca1'] = pca_result[:, 0]
+hypothetical_neighborhoods['pca2'] = pca_result[:, 1]
+
+# Save PCA cluster scatterplot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=hypothetical_neighborhoods, x='pca1', y='pca2', hue='Cluster', palette='tab10', s=80)
+plt.title("Neighborhood Clusters (PCA Projection)")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("clusters2.png")
+plt.close()
+
+# %%
+# count  the number of neighborhoods in each cluster
+cluster_counts = hypothetical_neighborhoods['Cluster'].value_counts().sort_index()
+print("\nCluster Counts:")
+print(cluster_counts)
+# %%
