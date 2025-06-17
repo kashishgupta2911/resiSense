@@ -40,7 +40,7 @@ print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_afford
 
 #%%
 # load and preprocess your data
-df = pd.read_csv('/home/kashish/desktop/resiSense/data/idea_one/idea_one_data4.csv')
+df = pd.read_csv('/Users/mylayambao/resiSense/data/idea_one/idea_one_data4.csv')
 drop_cols = ['Crime_Occurances','Unnamed: 28']
 
 # remove any underscores in column names
@@ -49,9 +49,7 @@ df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary co
 #df.drop('Unnamed: 28', axis=1, inplace=True)
 df = df.dropna()
 
-#%%
 
-=======
 # %% Clustering Section
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -64,7 +62,7 @@ print("df columns:", df.columns.tolist())
 
 # Select columns that are safe and valid for clustering
 clustering_features = df[[
-    'CrimeRate', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
+    'CrimeOccurances', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
     'TransitScore', 'WalkScore', 'BikeScore'
 ]]
 
@@ -117,7 +115,7 @@ plt.close()
 
 #Cluster interpretation summary
 summary = df.groupby('Cluster')[[
-    'CrimeRate', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
+    'CrimeOccurances', 'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023',
     'TransitScore', 'WalkScore', 'BikeScore'
 ]].mean().round(2)
 
@@ -131,14 +129,6 @@ for i in range(12):
 
 #  Drop clustering columns before model training to avoid prediction errors
 df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
-
-
-
-#%%
-
-# labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
-# df['rent_2023_category'], bins = pd.qcut(df['rent2023'], q=5, labels=labels, retbins=True)
-# print(bins)
 
 
 #%% 
@@ -201,7 +191,7 @@ bounds_dict = {
 }
 
 column_map = {
-    'crimerate': 'CrimeRate',
+    'crimerate': 'CrimeOccurances',
     'affordability': 'rent2024', 
     'transitscore': 'TransitScore', 
     'walkscore': 'WalkScore',
@@ -263,7 +253,7 @@ all_combinations = list(product(*combo_lists))
 
 # flatten tuples
 combo_df = pd.DataFrame(all_combinations, columns=[
-    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+    'historical_afford', 'rent2023', 'CrimeOccurances', 'WalkScore', 'TransitScore', 'BikeScore'
 ])
 
 # split historical affordability into separate columns
@@ -274,7 +264,7 @@ combo_df = combo_df.drop(columns=['historical_afford'])
 
 columns = [
     'rent2019', 'rent2020', 'rent2021', 'rent2022',
-    'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+    'rent2023', 'CrimeOccurances', 'WalkScore', 'TransitScore', 'BikeScore'
 ]
 combo_df = combo_df[columns]
 print(combo_df)
@@ -356,9 +346,10 @@ print(f'Mean Absolute Error: {mae:.4f}')
 y_pred_using_combo = model.predict(combo_df)
 
 
-
 # print the columns and the predictions
 for i in range(len(y_pred_using_combo)):
     print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
 
 # %%
+
+
