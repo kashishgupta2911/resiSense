@@ -62,7 +62,7 @@ print("df columns:", df.columns.tolist())
 
 # Select columns that are safe and valid for clustering
 clustering_features = df[[
-    'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeOccurances',
+    'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
     'WalkScore', 'TransitScore','BikeScore', 'rent2024'
 ]]
 
@@ -89,7 +89,7 @@ plt.savefig("elbow_plot.png")
 plt.close()
 
 # Fit final model with k=4 (or change this after checking elbow plot)
-kmeans = KMeans(n_clusters=12, random_state=42, n_init='auto')
+kmeans = KMeans(n_clusters=30, random_state=42, n_init='auto')
 df['Cluster'] = kmeans.fit_predict(scaled_features)
 
 # View clusters
@@ -117,7 +117,7 @@ print(df)
 
 #Cluster interpretation summary
 summary = df.groupby('Cluster')[[
-   'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeOccurances',
+   'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
      'WalkScore', 'TransitScore','BikeScore', 'rent2024'
 ]].mean().round(2)
 
@@ -125,7 +125,7 @@ print("\nCluster Summary:")
 print(summary)
 
 # Print sample neighborhoods from each cluster
-for i in range(12):
+for i in range(30):
     print(f"\nCluster {i} neighborhoods:")
     print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
 
@@ -201,7 +201,7 @@ bounds_dict = {
 }
 
 column_map = {
-    'crimerate': 'CrimeOccurances',
+    'crimerate': 'CrimeRate',
     'affordability': 'rent2024', 
     'transitscore': 'TransitScore', 
     'walkscore': 'WalkScore',
@@ -215,7 +215,7 @@ filtered_df = df.copy()
 
 # drop unneeded columns
 filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation', 
-                                         'CityZone', 'CMHCZone', 'CrimeOccurances', 
+                                         'CityZone', 'CMHCZone', 'CrimeRate', 
                                          'SupportiveHousingCount', 'SupportiveUnits', 
                                          'SheltersCount','Distance to U of A (km)',
                                         'Distance to MacEwan (km)', 
@@ -263,7 +263,7 @@ all_combinations = list(product(*combo_lists))
 
 # flatten tuples
 combo_df = pd.DataFrame(all_combinations, columns=[
-    'historical_afford', 'rent2023', 'CrimeOccurances', 'WalkScore', 'TransitScore', 'BikeScore'
+    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
 ])
 
 # split historical affordability into separate columns
@@ -274,7 +274,7 @@ combo_df = combo_df.drop(columns=['historical_afford'])
 
 columns = [
     'rent2019', 'rent2020', 'rent2021', 'rent2022',
-    'rent2023', 'CrimeOccurances', 'WalkScore', 'TransitScore', 'BikeScore'
+    'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
 ]
 combo_df = combo_df[columns]
 print(combo_df)
@@ -285,7 +285,7 @@ print(combo_df)
 #%%%
 
 X = df.drop(columns=['rent2024', 'rent2025','NeighbourhoodNumber', 'CenterLocation', 
-                     'CityZone', 'CMHCZone', 'CrimeRate', 
+                     'CityZone', 'CMHCZone', 'CrimeOccurances', 
                      'SupportiveHousingCount', 'SupportiveUnits', 
                      'SheltersCount','Distance to U of A (km)',
                     'Distance to MacEwan (km)', 
