@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
+
 #%%
 # get user input for their needs
 user_safety_rating = int(input("How important is safety to you? (1-5): "))
@@ -41,7 +42,7 @@ user_distance_uofa = int(user_distance_uofa)
 if user_distance_uofa < 1 or user_distance_uofa > 5:
     raise ValueError("Distance to U of A rating must be between 1 and 5.")
 
-print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_affordability_rating}, Transit: {user_tranist_rating}, Walkability: {user_walkability_rating}, Bikeability: {user_bikeability_rating}")
+print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_affordability_rating}, Transit: {user_tranist_rating}, Walkability: {user_walkability_rating}, Bikeability: {user_bikeability_rating}, Distance to U of A: {user_distance_uofa}")
 
 #%%
 # load and preprocess your data
@@ -53,6 +54,8 @@ df.columns = df.columns.str.replace('_', '', regex=False)
 #df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
 df.drop('Unnamed: 28', axis=1, inplace=True)
 df = df.dropna()
+
+df = df[df['NeighbourhoodName'] != 'Calgary Trail North']
 
 
 # %% Clustering Section
@@ -134,6 +137,13 @@ for i in range(30):
     print(f"\nCluster {i} neighborhoods:")
     print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
 
+# save the neighborhood names (as one col) with the cluster numbers (as another col)
+neighborhoods_clusters = df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster')
+# Save the neighborhoods and clusters to a CSV file
+neighborhoods_clusters.to_csv('neighborhoods_clusters.csv', index=False)
+# Print confirmation
+print("saved cluster csv")
+
 #  Drop clustering columns before model training to avoid prediction errors
 df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
 
@@ -171,11 +181,11 @@ crime_rate_bounds = {
     5: (0, 0.02) # very high
 }
 affordability_bounds = {
-    1: (1410, 1430),   # very low
-    2: (1365, 1409), # low
+    1: (1079, 1128),   # very low
+    2: (1129, 1316), # low
     3: (1317, 1364), # medium
-    4: (1129, 1316), # high
-    5: (1079, 1128) # very high
+    4: (1365, 1409), # high
+    5: (1410, 1430) # very high
 }
 
 transit_bounds = {
@@ -228,27 +238,6 @@ column_map = {
     'uofa': 'Distance to U of A (km)'
 }
 
-#%%
-def get_bounds(column_name, user_rating):
-    col = column_map[column_name]
-    rating = user_rating
-
-
-
-    # collect lower bounds from this rating and higher ones
-    lower_vals = [bounds_dict[column_name][r][0] for r in bounds_dict[column_name] if r >= rating]
-    min_val = min(lower_vals)
-
-    # max should be the upper bound of the selected rating only
-    max_val = bounds_dict[column_name][rating][1]
-
-    # median of current category's range
-    curr_range = bounds_dict[column_name][rating]
-    #med_val = (curr_range[0] + curr_range[1]) / 2
-
-    return [min_val,  max_val]
-
-
  #%%
 
 # filter the dataframe based on user input
@@ -266,14 +255,17 @@ filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation',
 
 
 
-bound_affordability = get_bounds('affordability', user_input['affordability'])
-print(bound_affordability)
-bound_crime_occurances = get_bounds('crimerate', user_input['crimerate'])
-print(bound_crime_occurances)
-bound_transit_scores = get_bounds('transitscore', user_input['transitscore'])
-bound_walk_scores = get_bounds('walkscore', user_input['walkscore'])
-bound_bike_scores = get_bounds('bikescore', user_input['bikescore'])
-bound_uofa = get_bounds('uofa', user_input['uofa'])
+bound_affordability = list(bounds_dict['affordability'][user_input['affordability']])
+bound_affordability2019 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2019'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2019'].max()]
+bound_affordability2020 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2020'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2020'].max()]
+bound_affordability2021 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2019'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2021'].max()]
+bound_affordability2022 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2022'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2022'].max()]
+bound_crime_occurances = list(bounds_dict['crimerate'][user_input['crimerate']])
+bound_transit_scores = list(bounds_dict['transitscore'][user_input['transitscore']])
+bound_walk_scores = list(bounds_dict['walkscore'][user_input['walkscore']])
+bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
+bound_uofa = list(bounds_dict['uofa'][user_input['uofa']])
+
 
 
 #%%
@@ -283,25 +275,12 @@ bound_uofa = get_bounds('uofa', user_input['uofa'])
 # group the historical values
 
 
-# historical_affordability_bounds = list(zip(
-#     bound_affordability2019,
-#     bound_affordability2020,
-#     bound_affordability2021,
-#     bound_affordability2022
-# ))
-
-historical_affordability_bounds = []
-
-for val in bound_affordability:
-    rent_subset = filtered_df[filtered_df['rent2023'] >= val]
-    if not rent_subset.empty:
-        historical_affordability_bounds.append((
-            rent_subset['rent2019'].max(),
-            rent_subset['rent2020'].max(),
-            rent_subset['rent2021'].max(),
-            rent_subset['rent2022'].max()
-        ))
-
+historical_affordability_bounds = list(zip(
+    bound_affordability2019,
+    bound_affordability2020,
+    bound_affordability2021,
+    bound_affordability2022
+))
 
 # Other bounds stay the same
 combo_lists = [
@@ -385,12 +364,12 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)
 
-for i in range(len(y_pred)):
-    print(f"{names[i]}: predicted: {y_pred[i]:.2f}  actual: {y_test.iloc[i]:.2f}")
+# for i in range(len(y_pred)):
+#     print(f"{names[i]}: predicted: {y_pred[i]:.2f}  actual: {y_test.iloc[i]:.2f}")
 
-for i in range(len(y_pred)):
-    diff = y_pred[i]- y_test.iloc[i]
-    print(f"{names[i]}: difference: {diff:.2f}")
+# for i in range(len(y_pred)):
+#     diff = y_pred[i]- y_test.iloc[i]
+#     print(f"{names[i]}: difference: {diff:.2f}")
 
 # metrics
 score = model.score(X_test,y_test)
@@ -411,9 +390,9 @@ print(f'Mean Absolute Error: {mae:.4f}')
 y_pred_using_combo = model.predict(combo_df)
 
 
-# # print the columns and the predictions
-# for i in range(len(y_pred_using_combo)):
-#     print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
+# print the columns and the predictions
+for i in range(len(y_pred_using_combo)):
+    print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
 
 # %%
 # store the hypothetical neighborhoods with rent estimates in a new dataframe
@@ -424,13 +403,13 @@ print(hypothetical_neighborhoods)
 
 # %%
 # use the kmeans saved kmeans model to predict the cluster for each hypothetical neighborhood
-# Load the saved KMeans model
+# load the saved model
 kmeans = joblib.load('/Users/mylayambao/resiSense/models/kmeans_model.pkl')
-# Predict clusters for the hypothetical neighborhoods
+# predict clusters for the hypothetical neighborhoods
 hypothetical_neighborhoods_scaled = scaler.transform(hypothetical_neighborhoods)
 print(hypothetical_neighborhoods_scaled)
 hypothetical_neighborhoods['Cluster'] = kmeans.predict(hypothetical_neighborhoods_scaled)
-# Print the hypothetical neighborhoods with clusters
+# print the hypothetical neighborhoods with clusters
 print("\nHypothetical Neighborhoods with Clusters:")
 print(hypothetical_neighborhoods[['rent2024', 'Cluster']])
 # %%
@@ -461,3 +440,28 @@ cluster_counts = hypothetical_neighborhoods['Cluster'].value_counts().sort_index
 print("\nCluster Counts:")
 print(cluster_counts)
 # %%
+# get all the real neighborhoods in the in the cluster of the 3 most reccomended clusters from the hypothetical neighborhoods
+
+# %%
+# get the top 3 recommended clusters
+top_3_clusters = cluster_counts.nlargest(3).index.tolist()
+
+# get the neighborhoods in those clusters
+df_cluster = pd.read_csv('/Users/mylayambao/resiSense/neighborhoods_clusters.csv')
+recommended_neighborhoods = df_cluster[df_cluster['Cluster'].isin(top_3_clusters)]
+
+# assign recommendation scores based on cluster rank
+recommendation_scores = {cluster: 3 - rank for rank, cluster in enumerate(top_3_clusters)}
+recommended_neighborhoods['RecommendationScore'] = recommended_neighborhoods['Cluster'].map(recommendation_scores)
+
+# Print the recommended neighborhoods
+print("\nTop 3 Recommended Clusters and Neighborhoods:")
+for cluster in top_3_clusters:
+    print(f"\nCluster {cluster}:")
+    neighborhoods_in_cluster = recommended_neighborhoods[recommended_neighborhoods['Cluster'] == cluster]['NeighbourhoodName'].tolist()
+    for neighborhood in neighborhoods_in_cluster:
+        print(neighborhood)
+
+# Save the recommended neighborhoods to a CSV file with uppercase neighborhood names
+recommended_neighborhoods['NeighbourhoodName'] = recommended_neighborhoods['NeighbourhoodName'].str.upper()
+recommended_neighborhoods[['NeighbourhoodName', 'RecommendationScore']].to_csv('recommended_neighborhoods.csv', index=False)
