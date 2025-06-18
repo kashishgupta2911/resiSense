@@ -54,6 +54,8 @@ df.columns = df.columns.str.replace('_', '', regex=False)
 df.drop('Unnamed: 28', axis=1, inplace=True)
 df = df.dropna()
 
+df = df[df['NeighbourhoodName'] != 'Calgary Trail North']
+
 
 # %% Clustering Section
 from sklearn.cluster import KMeans
@@ -133,6 +135,13 @@ print(summary)
 for i in range(30):
     print(f"\nCluster {i} neighborhoods:")
     print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
+
+# save the neighborhood names (as one col) with the cluster numbers (as another col)
+neighborhoods_clusters = df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster')
+# Save the neighborhoods and clusters to a CSV file
+neighborhoods_clusters.to_csv('neighborhoods_clusters.csv', index=False)
+# Print confirmation
+print("saved cluster csv")
 
 #  Drop clustering columns before model training to avoid prediction errors
 df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
@@ -428,3 +437,28 @@ cluster_counts = hypothetical_neighborhoods['Cluster'].value_counts().sort_index
 print("\nCluster Counts:")
 print(cluster_counts)
 # %%
+# get all the real neighborhoods in the in the cluster of the 3 most reccomended clusters from the hypothetical neighborhoods
+
+# %%
+# get the top 3 recommended clusters
+top_3_clusters = cluster_counts.nlargest(3).index.tolist()
+
+# get the neighborhoods in those clusters
+df_cluster = pd.read_csv('/Users/mylayambao/resiSense/neighborhoods_clusters.csv')
+recommended_neighborhoods = df_cluster[df_cluster['Cluster'].isin(top_3_clusters)]
+
+# assign recommendation scores based on cluster rank
+recommendation_scores = {cluster: 3 - rank for rank, cluster in enumerate(top_3_clusters)}
+recommended_neighborhoods['RecommendationScore'] = recommended_neighborhoods['Cluster'].map(recommendation_scores)
+
+# Print the recommended neighborhoods
+print("\nTop 3 Recommended Clusters and Neighborhoods:")
+for cluster in top_3_clusters:
+    print(f"\nCluster {cluster}:")
+    neighborhoods_in_cluster = recommended_neighborhoods[recommended_neighborhoods['Cluster'] == cluster]['NeighbourhoodName'].tolist()
+    for neighborhood in neighborhoods_in_cluster:
+        print(neighborhood)
+
+# Save the recommended neighborhoods to a CSV file
+recommended_neighborhoods[['NeighbourhoodName', 'RecommendationScore']].to_csv('recommended_neighborhoods.csv', index=False)
+
