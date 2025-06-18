@@ -459,6 +459,6 @@ for cluster in top_3_clusters:
     for neighborhood in neighborhoods_in_cluster:
         print(neighborhood)
 
-# Save the recommended neighborhoods to a CSV file
+# Save the recommended neighborhoods to a CSV file with uppercase neighborhood names
+recommended_neighborhoods['NeighbourhoodName'] = recommended_neighborhoods['NeighbourhoodName'].str.upper()
 recommended_neighborhoods[['NeighbourhoodName', 'RecommendationScore']].to_csv('recommended_neighborhoods.csv', index=False)
-
