@@ -41,7 +41,7 @@ user_distance_uofa = int(user_distance_uofa)
 if user_distance_uofa < 1 or user_distance_uofa > 5:
     raise ValueError("Distance to U of A rating must be between 1 and 5.")
 
-print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_affordability_rating}, Transit: {user_tranist_rating}, Walkability: {user_walkability_rating}, Bikeability: {user_bikeability_rating}")
+print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_affordability_rating}, Transit: {user_tranist_rating}, Walkability: {user_walkability_rating}, Bikeability: {user_bikeability_rating}, Distance to U of A: {user_distance_uofa}")
 
 #%%
 # load and preprocess your data
