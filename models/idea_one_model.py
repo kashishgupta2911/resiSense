@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
+
 #%%
 # get user input for their needs
 user_safety_rating = int(input("How important is safety to you? (1-5): "))
@@ -265,6 +266,8 @@ bound_walk_scores = list(bounds_dict['walkscore'][user_input['walkscore']])
 bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
 bound_uofa = list(bounds_dict['uofa'][user_input['uofa']])
 
+
+
 #%%
 # make a "hypothetical" dataframe with the combinations of the bounds lists
 
@@ -361,12 +364,12 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)
 
-for i in range(len(y_pred)):
-    print(f"{names[i]}: predicted: {y_pred[i]:.2f}  actual: {y_test.iloc[i]:.2f}")
+# for i in range(len(y_pred)):
+#     print(f"{names[i]}: predicted: {y_pred[i]:.2f}  actual: {y_test.iloc[i]:.2f}")
 
-for i in range(len(y_pred)):
-    diff = y_pred[i]- y_test.iloc[i]
-    print(f"{names[i]}: difference: {diff:.2f}")
+# for i in range(len(y_pred)):
+#     diff = y_pred[i]- y_test.iloc[i]
+#     print(f"{names[i]}: difference: {diff:.2f}")
 
 # metrics
 score = model.score(X_test,y_test)
@@ -400,13 +403,13 @@ print(hypothetical_neighborhoods)
 
 # %%
 # use the kmeans saved kmeans model to predict the cluster for each hypothetical neighborhood
-# Load the saved KMeans model
+# load the saved model
 kmeans = joblib.load('/Users/mylayambao/resiSense/models/kmeans_model.pkl')
-# Predict clusters for the hypothetical neighborhoods
+# predict clusters for the hypothetical neighborhoods
 hypothetical_neighborhoods_scaled = scaler.transform(hypothetical_neighborhoods)
 print(hypothetical_neighborhoods_scaled)
 hypothetical_neighborhoods['Cluster'] = kmeans.predict(hypothetical_neighborhoods_scaled)
-# Print the hypothetical neighborhoods with clusters
+# print the hypothetical neighborhoods with clusters
 print("\nHypothetical Neighborhoods with Clusters:")
 print(hypothetical_neighborhoods[['rent2024', 'Cluster']])
 # %%
