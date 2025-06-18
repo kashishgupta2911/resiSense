@@ -1,276 +1,276 @@
 NeighbourhoodName,Cluster
-Potter Greens,0
-Suder Greens,0
-Breckenridge Greens,0
-Webber Greens,0
-Blackburne,0
 Twin Brooks,0
-Westbrook Estates,0
-Bulyea Heights,0
-Jackson Heights,0
-Bellevue,1
-Delwood,1
-Glengarry,1
-Rosslyn,1
-Belvedere,1
-Killarney,1
-Balwin,1
-Montrose,1
-Newton,1
-Eastwood,1
-Westwood,1
-Lauderdale,1
-Highlands,1
-Delton,1
-Elmwood Park,1
-Oliver,2
+Westmount,1
+Inglewood,1
 Rossdale,2
-Downtown,2
-Boyle Street,2
-McCauley,2
-Alberta Avenue,2
-Cromdale,2
-Pembina,3
-Carlisle,3
-Oxford,3
-Cumberland,3
-Crystallina Nera West,3
-Glastonbury,3
-Klarvatten,3
-Lago Lindo,3
-Albany,3
-Schonsee,3
-Baturyn,3
-Belle Rive,3
-Mayliewan,3
-Ozerna,3
-Dunluce,3
-Kilkenny,3
-Hudson,3
-Canossa,3
-The Hamptons,3
-Caernarvon,3
-CPR Irvine,4
-Prince Rupert,4
-University of Alberta,4
-Westmount,5
-Glenora,5
-Grovenor,5
-West Jasper Place,5
-North Glenora,5
-Queen Mary Park,5
-Prince Charles,5
-Virginia Park,5
-Crestwood,5
-Sherbrooke,5
-Jasper Park,5
-Inglewood,5
-Parkview,5
-Kinglet Gardens,6
-The Orchards At Ellerslie,6
-Maple Ridge Industrial,6
-Hawks Ridge,6
-Winterburn Industrial Area West,6
-Secord,6
-Baranow,7
-Lewis Farms Industrial,7
-Hodgson,8
-Magrath Heights,8
-Larkspur,8
-Leger,8
-Callingwood South,8
-Duggan,8
-Terwillegar Towne,8
-Falconer Heights,8
-Rhatigan Ridge,8
-Lee Ridge,9
-Richfield,9
-Wild Rose,9
-Meyonohk,9
-Ekota,9
-Tweddle Place,9
-Pollard Meadows,9
-Allard,9
-Bisset,9
-Michaels Park,9
-Weinlos,9
-Fulton Place,10
-Gold Bar,10
-Holyrood,10
-Terrace Heights,10
-Strathearn,10
-Avonmore,10
-King Edward Park,10
-Idylwylde,10
-Kenilworth,10
-Bonnie Doon,10
-Ottewell,10
-Cloverdale,10
-Forest Heights,10
-Sweet Grass,10
-Argyll,10
-Mill Creek Ravine South,10
-Mill Creek Ravine North,10
-Abbottsfield,11
-Eaux Claires,11
-Kildare,11
-Lorelei,11
-Ebbers,11
-Hairsine,11
-Rundle Heights,11
-Beverly Heights,11
-Beacon Heights,11
-Homesteader,11
-Belmont,11
-Sifton Park,11
-York,11
-Edmonton South East,12
-Laurel,12
-Crawford Plains,12
-Ellerslie,12
-Summerside,12
-Silver Berry,12
-Maple,12
-Charlesworth,12
-Chappelle,12
-Hays Ridge Area,12
-Glenridding Heights,12
-Keswick,12
-Rutherford,12
-Callaghan,12
-Cavanagh,12
-Graydon Hill,12
-Desrochers Area,12
-Blackmud Creek,12
-Ambleside,12
-Allendale,13
-Pleasantview,13
-McKernan,14
-Belgravia,14
-Riverdale,14
-Parkallen,14
-Daly Grove,15
-Satoo,15
-MacEwan,15
-Richford,15
-Bearspaw,15
-Kiniski Gardens,15
-Minchau,15
-Greenview,15
-Menisa,15
-Gariepy,15
-Dechene,15
-Ormsby Place,15
-Jamieson Place,15
-Hillview,15
-Sakaw,15
-Donsdale,15
-Haddow,15
-Henderson Estates,15
-Carter Crest,15
-Westview Village,16
-Chambery,16
-Elsinore,16
-Cameron Heights,16
-Granville,16
-Edgemont,16
-Wedgewood Heights,16
-Carlton,16
-Central McDougall,17
-Spruce Avenue,17
-Parkdale,17
-Edmonton Energy And Technology Park,18
-Rural North East South Sturgeon,18
-Evergreen,18
-Marquis,18
-Maple Ridge,19
-Capilano,19
-Edmonton South Central,20
-Heritage Valley Town Centre,20
-Tamarack,20
-Decoteau,20
-Windermere,20
-Walker,20
-Empire Park,21
-Lendrum Place,21
-Steinhauer,21
-Rideau Park,21
-Summerlea,22
-Thorncliff,22
-Glenwood,22
-Kinokamau Plains Area,22
-Terra Losa,22
-Belmead,22
-Beaumaris,22
-Evansdale,22
-Northmount,22
-Aldergrove,22
-Griesbach,22
-McConachie,23
-Bannerman,23
-McLeod,23
-Fraser,23
-Casselman,23
-Kirkness,23
-Miller,23
-Brintnell,23
-Hollick-Kenyon,23
-Matt Berry,23
-Kernohan,23
-Overlanders,23
-Cy Becker,23
-Canon Ridge,23
-Bergman,23
-Sherwood,24
-Lynnwood,24
-Calder,24
-West Meadowlark Park,24
-Woodcroft,24
-Athlone,24
-Elmwood,24
-Wellington,24
-Meadowlark Park,24
-Kensington,24
-McQueen,24
-Dovercourt,24
-Mayfield,24
-Quesnell Heights,24
-Britannia Youngstown,24
-High Park,24
-Canora,24
-Laurier Heights,24
-Windsor Park,25
-Grandview Heights,25
-Patricia Heights,25
+Rutherford,3
+Graydon Hill,3
+Canora,4
+Britannia Youngstown,4
+West Meadowlark Park,4
+Northmount,5
+Eaux Claires,5
+CPR Irvine,6
+Terrace Heights,7
+Albany,8
+Ermineskin,9
+Garneau,10
+Granville,11
+Tamarack,12
+Evergreen,13
+Royal Gardens,14
+Duggan,14
+Spruce Avenue,15
+Lorelei,16
+Homesteader,16
+Elmwood Park,17
+Delton,17
+Killarney,17
+Grandview Heights,18
+Bannerman,19
+Kernohan,19
+Hollick-Kenyon,19
+Baranow,20
+Boyle Street,21
+Chambery,22
+Kiniski Gardens,23
+Decoteau,24
+Maple Ridge,25
 Mill Woods Town Centre,26
-Clareview Town Centre,26
-Hazeldean,27
-Strathcona,27
-Garneau,27
-Queen Alexandra,27
-Ritchie,27
-Mactaggart,28
-Skyrattler,28
-Meyokumin,28
-Ermineskin,28
-Tipaskan,28
-Kameyosek,28
-Tawa,28
-Blue Quill,28
-Keheewin,28
-Ramsay Heights,29
-Ogilvie Ridge,29
-La Perle,29
-Callingwood North,29
-Greenfield,29
-Lymburn,29
-Malmo Plains,29
-Rio Terrace,29
-Brander Gardens,29
-Westridge,29
-Aspen Gardens,29
-Oleskiw,29
-Lansdowne,29
-Royal Gardens,29
-Blue Quill Estates,29
-Brookside,29
+Belmead,27
+Winterburn Industrial Area West,28
+Belgravia,29
+Idylwylde,30
+Wild Rose,31
+Clareview Town Centre,32
+Aspen Gardens,33
+Lansdowne,33
+Downtown,34
+Laurier Heights,35
+Allendale,36
+Ritchie,37
+Avonmore,38
+Rundle Heights,39
+Kensington,40
+Wellington,40
+Capilano,41
+University of Alberta,42
+Prince Rupert,43
+Klarvatten,44
+Leger,45
+Hodgson,45
+Meyonohk,46
+Richfield,46
+Lee Ridge,46
+Ormsby Place,47
+Dechene,47
+Gariepy,47
+Riverdale,48
+Empire Park,49
+Sakaw,50
+Daly Grove,50
+Bisset,50
+Miller,51
+Casselman,51
+Belmont,51
+McLeod,51
+Blue Quill Estates,52
+Greenfield,52
+Carter Crest,52
+Edmonton Energy And Technology Park,53
+Summerlea,54
+Westwood,55
+Montrose,56
+Windermere,57
+Allard,58
+Oliver,59
+Breckenridge Greens,60
+Webber Greens,60
+Pleasantview,61
+Parkallen,62
+Quesnell Heights,63
+McQueen,63
+Dovercourt,63
+Hudson,64
+Carlisle,64
+North Glenora,65
+Grovenor,65
+McCauley,66
+Secord,67
+McConachie,68
+Kirkness,68
+Cloverdale,69
+Crawford Plains,70
+Summerside,70
+Ellerslie,70
+The Hamptons,71
+Edmonton South Central,72
+Edgemont,73
+Cameron Heights,73
+Heritage Valley Town Centre,74
+Hazeldean,75
+Oleskiw,76
+Virginia Park,77
+Meyokumin,78
+Edmonton South East,79
+Canon Ridge,80
+Patricia Heights,81
+Beverly Heights,82
+Beacon Heights,82
+Evansdale,83
+Beaumaris,83
+Sherwood,84
+High Park,85
+Michaels Park,86
+Tweddle Place,86
+Mactaggart,87
+Central McDougall,88
+Lewis Farms Industrial,89
+Calder,90
+Athlone,90
+Rideau Park,91
+Cromdale,92
+Mill Creek Ravine North,93
+Kinokamau Plains Area,94
+West Jasper Place,95
+Jasper Park,95
+Aldergrove,96
+The Orchards At Ellerslie,97
+Hairsine,98
+Parkdale,99
+Sweet Grass,100
+Argyll,100
+York,101
+Sifton Park,101
+Pollard Meadows,102
+Lago Lindo,103
+Belle Rive,103
+Delwood,104
+Balwin,104
+Blackburne,105
+Glengarry,106
+Belvedere,106
+Westridge,107
+Rio Terrace,107
+Ozerna,108
+Mayliewan,108
+Cavanagh,109
+Desrochers Area,109
+Hays Ridge Area,109
+Chappelle,109
+Lauderdale,110
+Rosslyn,110
+Larkspur,111
+Maple Ridge Industrial,112
+Terwillegar Towne,113
+Forest Heights,114
+Jackson Heights,115
+Greenview,115
+Woodcroft,116
+Overlanders,117
+Bergman,117
+Keheewin,118
+Jamieson Place,119
+Donsdale,119
+Kilkenny,120
+Canossa,121
+Parkview,122
+Queen Alexandra,123
+Westbrook Estates,124
+Bulyea Heights,124
+Carlton,125
+Callingwood South,126
+La Perle,127
+Lymburn,127
+Fraser,128
+Brintnell,128
+Sherbrooke,129
+MacEwan,130
+Richford,130
+Ambleside,130
+Westview Village,131
+Lendrum Place,132
+Kinglet Gardens,133
+Kildare,134
+Walker,135
+Kameyosek,136
+Eastwood,137
+Callingwood North,138
+Malmo Plains,139
+Glenwood,140
+Brander Gardens,141
+Blue Quill,142
+Skyrattler,142
+Griesbach,143
+Matt Berry,144
+Potter Greens,145
+Suder Greens,145
+Crestwood,146
+Rural North East South Sturgeon,147
+Meadowlark Park,148
+Lynnwood,148
+Windsor Park,149
+Thorncliff,150
+Abbottsfield,151
+Henderson Estates,152
+Rhatigan Ridge,152
+Blackmud Creek,153
+Alberta Avenue,154
+Marquis,155
+Cumberland,156
+Steinhauer,157
+Dunluce,158
+Caernarvon,158
+Newton,159
+Menisa,160
+Weinlos,161
+Tawa,162
+Prince Charles,163
+Bellevue,164
+Silver Berry,165
+Maple,165
+Laurel,165
+Bearspaw,166
+Fulton Place,167
+Kenilworth,167
+Strathearn,168
+Holyrood,168
+Magrath Heights,169
+Keswick,170
+Glenridding Heights,170
+Callaghan,170
+Haddow,171
+King Edward Park,172
+Bonnie Doon,172
+Ramsay Heights,173
+Ogilvie Ridge,173
+Highlands,174
+Schonsee,175
+Falconer Heights,176
+McKernan,177
+Mayfield,178
+Strathcona,179
+Hawks Ridge,180
+Elmwood,181
+Glenora,182
+Charlesworth,183
+Queen Mary Park,184
+Brookside,185
+Oxford,186
+Crystallina Nera West,186
+Baturyn,186
+Ekota,187
+Pembina,188
+Glastonbury,189
+Terra Losa,190
+Elsinore,191
+Gold Bar,192
+Tipaskan,193
+Mill Creek Ravine South,194
+Hillview,195
+Minchau,195
+Satoo,195
+Cy Becker,196
+Ebbers,197
+Wedgewood Heights,198
+Ottewell,199

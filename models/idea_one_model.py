@@ -97,7 +97,7 @@ plt.savefig("elbow_plot.png")
 plt.close()
 
 # Fit final model with k=4 (or change this after checking elbow plot)
-kmeans = KMeans(n_clusters=30, random_state=42, n_init='auto')
+kmeans = KMeans(n_clusters=200, random_state=42, n_init='auto')
 df['Cluster'] = kmeans.fit_predict(scaled_features)
 
 # View clusters
@@ -133,7 +133,7 @@ print("\nCluster Summary:")
 print(summary)
 
 # Print sample neighborhoods from each cluster
-for i in range(30):
+for i in range(200):
     print(f"\nCluster {i} neighborhoods:")
     print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
 
