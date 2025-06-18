@@ -36,6 +36,11 @@ user_bikeability_rating = int(user_bikeability_rating)
 if user_bikeability_rating < 1 or user_bikeability_rating > 5:
     raise ValueError("Bikeability rating must be between 1 and 5.")
 
+user_distance_uofa = input("How important is distance to U of A to you? (1-5): ")
+user_distance_uofa = int(user_distance_uofa)
+if user_distance_uofa < 1 or user_distance_uofa > 5:
+    raise ValueError("Distance to U of A rating must be between 1 and 5.")
+
 print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_affordability_rating}, Transit: {user_tranist_rating}, Walkability: {user_walkability_rating}, Bikeability: {user_bikeability_rating}")
 
 #%%
@@ -63,7 +68,7 @@ print("df columns:", df.columns.tolist())
 # Select columns that are safe and valid for clustering
 clustering_features = df[[
     'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
-    'WalkScore', 'TransitScore','BikeScore', 'rent2024'
+    'WalkScore', 'TransitScore','BikeScore', 'Distance to U of A (km)', 'rent2024'
 ]]
 
 # Normalize the features
@@ -72,14 +77,14 @@ scaled_features = scaler.fit_transform(clustering_features)
 
 # Optional: Elbow method to decide best k
 inertia = []
-for k in range(1, 11):
+for k in range(1, 12):
     kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
     kmeans.fit(scaled_features)
     inertia.append(kmeans.inertia_)
 
 # Save elbow plot
 plt.figure(figsize=(8, 4))
-plt.plot(range(1, 11), inertia, marker='o')
+plt.plot(range(1, 12), inertia, marker='o')
 plt.title('Elbow Method for Optimal k')
 plt.xlabel('Number of Clusters')
 plt.ylabel('Inertia')
@@ -118,7 +123,7 @@ print(df)
 #Cluster interpretation summary
 summary = df.groupby('Cluster')[[
    'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
-     'WalkScore', 'TransitScore','BikeScore', 'rent2024'
+     'WalkScore', 'TransitScore','BikeScore', 'Distance to U of A (km)', 'rent2024'
 ]].mean().round(2)
 
 print("\nCluster Summary:")
@@ -141,6 +146,11 @@ joblib.dump(kmeans, kmeans_model_path)
 # Print confirmation
 print(f"KMeans saved")
 
+#%%
+# labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
+# df['Distance_UofA'], bins = pd.qcut(df['Distance to U of A (km)'], q=5, labels=labels, retbins=True)
+# print(bins)
+
 #%% 
 # define upper and lower bounds for the saftey based on the user input
 
@@ -150,7 +160,8 @@ user_input = {
     'affordability': user_affordability_rating,
     'transitscore': user_tranist_rating,
     'walkscore': user_walkability_rating,
-    'bikescore': user_bikeability_rating
+    'bikescore': user_bikeability_rating, 
+    'uofa': user_distance_uofa
 }
 crime_rate_bounds = {
     1: (0.12 , 16.42),   # very low
@@ -191,13 +202,21 @@ bikeability_bounds = {
     5: (47, 92) # very high
 }
 
+uofa_bounds = { 
+    1: (11.73721675, 22.30119328),   # very low
+    2: (9.71986469, 11.73721675), # low
+    3: (7.45851460 , 9.71986468), # medium
+    4: (4.92003644,  7.45851459 ), # high
+    5: (0.2303176267, 4.92003643) # very high
+}
 # bounds dict
 bounds_dict = {
     'crimerate': crime_rate_bounds,
     'affordability': affordability_bounds,
     'transitscore': transit_bounds,
     'walkscore': walkability_bounds,
-    'bikescore': bikeability_bounds
+    'bikescore': bikeability_bounds, 
+    'uofa': uofa_bounds
 }
 
 column_map = {
@@ -205,7 +224,8 @@ column_map = {
     'affordability': 'rent2024', 
     'transitscore': 'TransitScore', 
     'walkscore': 'WalkScore',
-    'bikescore': 'BikeScore'
+    'bikescore': 'BikeScore',
+    'uofa': 'Distance to U of A (km)'
 }
 
  #%%
@@ -217,11 +237,11 @@ filtered_df = df.copy()
 filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation', 
                                          'CityZone', 'CMHCZone', 'CrimeRate', 
                                          'SupportiveHousingCount', 'SupportiveUnits', 
-                                         'SheltersCount','Distance to U of A (km)',
+                                         'SheltersCount',
                                         'Distance to MacEwan (km)', 
                                         'Distance to NAIT (km)', 
                                         'Distance to Concordia (km)',
-                                        'Distance to NorQuest (km)','NeighbourhoodName', 'Population', ], axis=1)
+                                        'Distance to NorQuest (km)','NeighbourhoodName', 'Population' ], axis=1)
 
 
 
@@ -234,6 +254,7 @@ bound_crime_occurances = list(bounds_dict['crimerate'][user_input['crimerate']])
 bound_transit_scores = list(bounds_dict['transitscore'][user_input['transitscore']])
 bound_walk_scores = list(bounds_dict['walkscore'][user_input['walkscore']])
 bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
+bound_uofa = list(bounds_dict['uofa'][user_input['uofa']])
 
 #%%
 # make a "hypothetical" dataframe with the combinations of the bounds lists
@@ -256,14 +277,15 @@ combo_lists = [
     bound_crime_occurances,
     bound_walk_scores,
     bound_transit_scores,
-    bound_bike_scores
+    bound_bike_scores, 
+    bound_uofa
 ]
 
 all_combinations = list(product(*combo_lists))
 
 # flatten tuples
 combo_df = pd.DataFrame(all_combinations, columns=[
-    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+    'historical_afford', 'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore', 'Distance to U of A (km)'
 ])
 
 # split historical affordability into separate columns
@@ -274,7 +296,7 @@ combo_df = combo_df.drop(columns=['historical_afford'])
 
 columns = [
     'rent2019', 'rent2020', 'rent2021', 'rent2022',
-    'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore'
+    'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore', 'Distance to U of A (km)'
 ]
 combo_df = combo_df[columns]
 print(combo_df)
@@ -287,7 +309,7 @@ print(combo_df)
 X = df.drop(columns=['rent2024', 'rent2025','NeighbourhoodNumber', 'CenterLocation', 
                      'CityZone', 'CMHCZone', 'CrimeOccurances', 
                      'SupportiveHousingCount', 'SupportiveUnits', 
-                     'SheltersCount','Distance to U of A (km)',
+                     'SheltersCount',
                     'Distance to MacEwan (km)', 
                     'Distance to NAIT (km)', 
                     'Distance to Concordia (km)',
@@ -373,6 +395,7 @@ print(hypothetical_neighborhoods)
 kmeans = joblib.load('/Users/mylayambao/resiSense/models/kmeans_model.pkl')
 # Predict clusters for the hypothetical neighborhoods
 hypothetical_neighborhoods_scaled = scaler.transform(hypothetical_neighborhoods)
+print(hypothetical_neighborhoods_scaled)
 hypothetical_neighborhoods['Cluster'] = kmeans.predict(hypothetical_neighborhoods_scaled)
 # Print the hypothetical neighborhoods with clusters
 print("\nHypothetical Neighborhoods with Clusters:")
