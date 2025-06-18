@@ -181,11 +181,11 @@ crime_rate_bounds = {
     5: (0, 0.02) # very high
 }
 affordability_bounds = {
-    1: (1079, 1128),   # very low
-    2: (1129, 1316), # low
+    1: (1410, 1430),   # very lowAdd commentMore actions
+    2: (1365, 1409),
     3: (1317, 1364), # medium
-    4: (1365, 1409), # high
-    5: (1410, 1430) # very high
+    4: (1129, 1316), # highAdd commentMore actions
+    5: (1079, 1128)
 }
 
 transit_bounds = {
@@ -239,7 +239,32 @@ column_map = {
 }
 
  #%%
+def get_bounds(column_name, user_rating, reverse=False):
+    col = column_map[column_name]
+    rating = user_rating
 
+    if rating not in bounds_dict[column_name]:
+        raise ValueError(f"Invalid rating {rating} for {column_name}")
+
+    if reverse:
+        # HIGHER is better (walk/transit/bike scores)
+        lower_vals = [bounds_dict[column_name][r][0] for r in bounds_dict[column_name] if r <= rating]
+        min_val = bounds_dict[column_name][rating][0]
+        max_val = max([bounds_dict[column_name][r][1] for r in bounds_dict[column_name]])
+    else:
+        # LOWER is better (crime, distance, affordability)
+        lower_vals = [bounds_dict[column_name][r][0] for r in bounds_dict[column_name] if r >= rating]
+        min_val = min(lower_vals)
+        max_val = bounds_dict[column_name][rating][1]
+
+    # median of selected category's range
+    curr_range = bounds_dict[column_name][rating]
+    #med_val = (curr_range[0] + curr_range[1]) / 2
+
+    return [min_val, max_val]
+
+
+#%%
 # filter the dataframe based on user input
 filtered_df = df.copy()
 
@@ -255,32 +280,45 @@ filtered_df = filtered_df.drop(columns=['NeighbourhoodNumber', 'CenterLocation',
 
 
 
-bound_affordability = list(bounds_dict['affordability'][user_input['affordability']])
-bound_affordability2019 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2019'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2019'].max()]
-bound_affordability2020 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2020'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2020'].max()]
-bound_affordability2021 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2019'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2021'].max()]
-bound_affordability2022 = [filtered_df[filtered_df['rent2023'] >= bound_affordability[0]]['rent2022'].max(), filtered_df[filtered_df['rent2023'] >= bound_affordability[1]]['rent2022'].max()]
-bound_crime_occurances = list(bounds_dict['crimerate'][user_input['crimerate']])
-bound_transit_scores = list(bounds_dict['transitscore'][user_input['transitscore']])
-bound_walk_scores = list(bounds_dict['walkscore'][user_input['walkscore']])
-bound_bike_scores = list(bounds_dict['bikescore'][user_input['bikescore']])
-bound_uofa = list(bounds_dict['uofa'][user_input['uofa']])
+bound_affordability = get_bounds('affordability', user_input['affordability'])
+print(bound_affordability)
+bound_crime_occurances = get_bounds('crimerate', user_input['crimerate'])
+print(bound_crime_occurances)
+bound_transit_scores = get_bounds('transitscore', user_input['transitscore'], reverse=True)
+print(bound_transit_scores)
+bound_walk_scores = get_bounds('walkscore', user_input['walkscore'],reverse=True)
+print(bound_walk_scores)
+bound_bike_scores = get_bounds('bikescore', user_input['bikescore'],reverse=True)
+print(bound_bike_scores)
+bound_uofa = get_bounds('uofa', user_input['uofa'])
+print(bound_uofa)
 
 
 
 #%%
 # make a "hypothetical" dataframe with the combinations of the bounds lists
 
-
 # group the historical values
 
 
-historical_affordability_bounds = list(zip(
-    bound_affordability2019,
-    bound_affordability2020,
-    bound_affordability2021,
-    bound_affordability2022
-))
+# historical_affordability_bounds = list(zip(
+#     bound_affordability2019,
+#     bound_affordability2020,
+#     bound_affordability2021,
+#     bound_affordability2022
+# ))
+
+historical_affordability_bounds = []
+
+for val in bound_affordability:
+    rent_subset = filtered_df[filtered_df['rent2023'] >= val]
+    if not rent_subset.empty:
+        historical_affordability_bounds.append((
+            rent_subset['rent2019'].max(),
+            rent_subset['rent2020'].max(),
+            rent_subset['rent2021'].max(),
+            rent_subset['rent2022'].max()
+        ))
 
 # Other bounds stay the same
 combo_lists = [
@@ -364,13 +402,6 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)
 
-# for i in range(len(y_pred)):
-#     print(f"{names[i]}: predicted: {y_pred[i]:.2f}  actual: {y_test.iloc[i]:.2f}")
-
-# for i in range(len(y_pred)):
-#     diff = y_pred[i]- y_test.iloc[i]
-#     print(f"{names[i]}: difference: {diff:.2f}")
-
 # metrics
 score = model.score(X_test,y_test)
 r2 = r2_score(y_test, y_pred)
@@ -391,8 +422,8 @@ y_pred_using_combo = model.predict(combo_df)
 
 
 # print the columns and the predictions
-for i in range(len(y_pred_using_combo)):
-    print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
+# for i in range(len(y_pred_using_combo)):
+#     print(f"hypothetical neighborhood {i+1}: {combo_df.iloc[i].to_dict()} -> rent estimate{y_pred_using_combo[i]:.2f}")
 
 # %%
 # store the hypothetical neighborhoods with rent estimates in a new dataframe
