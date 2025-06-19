@@ -1,6 +1,23 @@
-NeighbourhoodName,RecommendationScore
-CANORA,3
-BRITANNIA YOUNGSTOWN,3
-WEST MEADOWLARK PARK,3
-CPR IRVINE,2
-KINISKI GARDENS,1
+NeighbourhoodName,Cluster,RecommendationScore
+Summerlea,4,3
+Terra Losa,4,3
+Steinhauer,4,3
+Tweddle Place,4,3
+Michaels Park,4,3
+Thorncliff,4,3
+Callingwood North,4,3
+Lendrum Place,13,2
+Pleasantview,13,2
+Allendale,13,2
+Empire Park,13,2
+Rossdale,13,2
+The Hamptons,25,1
+Blackburne,25,1
+Breckenridge Greens,25,1
+Suder Greens,25,1
+Potter Greens,25,1
+Granville,25,1
+Cumberland,25,1
+Webber Greens,25,1
+Carlton,25,1
+Glastonbury,25,1

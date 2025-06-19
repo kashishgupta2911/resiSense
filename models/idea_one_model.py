@@ -43,129 +43,14 @@ if user_distance_uofa < 1 or user_distance_uofa > 5:
     raise ValueError("Distance to U of A rating must be between 1 and 5.")
 
 print(f"User ratings - Safety: {user_safety_rating}, Affordability: {user_affordability_rating}, Transit: {user_tranist_rating}, Walkability: {user_walkability_rating}, Bikeability: {user_bikeability_rating}, Distance to U of A: {user_distance_uofa}")
-
 #%%
-# load and preprocess your data
-df = pd.read_csv('/Users/mylayambao/resiSense/data/idea_one/idea_one_data4.csv')
-drop_cols = ['Crime_Occurances','Unnamed: 28']
-
-# remove any underscores in column names
-df.columns = df.columns.str.replace('_', '', regex=False)
-#df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
-df.drop('Unnamed: 28', axis=1, inplace=True)
-df = df.dropna()
-
-df = df[df['NeighbourhoodName'] != 'Calgary Trail North']
-
-
-# %% Clustering Section
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-# Check that the columns exist
-print("df columns:", df.columns.tolist())
-
-# Select columns that are safe and valid for clustering
-clustering_features = df[[
-    'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
-    'WalkScore', 'TransitScore','BikeScore', 'Distance to U of A (km)', 'rent2024'
-]]
-
-# Normalize the features
-scaler = StandardScaler()
-scaled_features = scaler.fit_transform(clustering_features)
-
-# Optional: Elbow method to decide best k
-inertia = []
-for k in range(1, 12):
-    kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
-    kmeans.fit(scaled_features)
-    inertia.append(kmeans.inertia_)
-
-# Save elbow plot
-plt.figure(figsize=(8, 4))
-plt.plot(range(1, 12), inertia, marker='o')
-plt.title('Elbow Method for Optimal k')
-plt.xlabel('Number of Clusters')
-plt.ylabel('Inertia')
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("elbow_plot.png")
-plt.close()
-
-# Fit final model with k=4 (or change this after checking elbow plot)
-kmeans = KMeans(n_clusters=200, random_state=42, n_init='auto')
-df['Cluster'] = kmeans.fit_predict(scaled_features)
-
-# View clusters
-print("\n Neighborhoods by Cluster:")
-print(df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster'))
-
-# Apply PCA for 2D visualization
-pca = PCA(n_components=2)
-pca_result = pca.fit_transform(scaled_features)
-df['pca1'] = pca_result[:, 0]
-df['pca2'] = pca_result[:, 1]
-
-# Save PCA cluster scatterplot
-plt.figure(figsize=(10, 6))
-sns.scatterplot(data=df, x='pca1', y='pca2', hue='Cluster', palette='tab10', s=80)
-plt.title("Neighborhood Clusters (PCA Projection)")
-plt.xlabel("PCA Component 1")
-plt.ylabel("PCA Component 2")
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("clusters.png")
-plt.close()
-
-print(df)
-
-#Cluster interpretation summary
-summary = df.groupby('Cluster')[[
-   'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
-     'WalkScore', 'TransitScore','BikeScore', 'Distance to U of A (km)', 'rent2024'
-]].mean().round(2)
-
-print("\nCluster Summary:")
-print(summary)
-
-# Print sample neighborhoods from each cluster
-for i in range(200):
-    print(f"\nCluster {i} neighborhoods:")
-    print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
-
-# save the neighborhood names (as one col) with the cluster numbers (as another col)
-neighborhoods_clusters = df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster')
-# Save the neighborhoods and clusters to a CSV file
-neighborhoods_clusters.to_csv('neighborhoods_clusters.csv', index=False)
-# Print confirmation
-print("saved cluster csv")
-
-#  Drop clustering columns before model training to avoid prediction errors
-df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
-
-
-#%% 
-# save the clustering model
-kmeans_model_path = 'kmeans_model.pkl'
-import joblib
-joblib.dump(kmeans, kmeans_model_path)
-# Print confirmation
-print(f"KMeans saved")
-
-#%%
-# labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
-# df['Distance_UofA'], bins = pd.qcut(df['Distance to U of A (km)'], q=5, labels=labels, retbins=True)
-# print(bins)
-
-#%% 
-# define upper and lower bounds for the saftey based on the user input
-
-# input is a dictionary 
+# define weights based on the user input
 user_input = {
+    'rent2019':1, 
+    'rent2020':1,
+    'rent2021':1,
+    'rent2022':1,
+    'rent2023':1,
     'crimerate': user_safety_rating,
     'affordability': user_affordability_rating,
     'transitscore': user_tranist_rating,
@@ -174,7 +59,7 @@ user_input = {
     'uofa': user_distance_uofa
 }
 crime_rate_bounds = {
-    1: (0.12 , 16.42),   # very low
+    1: (0.12 , 0.90),   # very low
     2: (0.07, 0.12), # low
     3: (0.04, 0.07), # medium
     4: (0.02, 0.04), # high
@@ -237,6 +122,145 @@ column_map = {
     'bikescore': 'BikeScore',
     'uofa': 'Distance to U of A (km)'
 }
+#%%
+# load and preprocess your data
+df = pd.read_csv('/Users/mylayambao/resiSense/data/idea_one/idea_one_data4.csv')
+drop_cols = ['Crime_Occurances','Unnamed: 28']
+
+# remove any underscores in column names
+df.columns = df.columns.str.replace('_', '', regex=False)
+#df.drop(columns=drop_cols, inplace=True, errors='ignore')  # drop unnecessary columns
+df.drop('Unnamed: 28', axis=1, inplace=True)
+df = df.dropna()
+
+df = df[df['NeighbourhoodName'] != 'Calgary Trail North']
+
+
+# %% Clustering Section
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Check that the columns exist
+# print("df columns:", df.columns.tolist())
+
+# Select columns that are safe and valid for clustering
+clustering_features = df[[
+    'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
+    'WalkScore', 'TransitScore','BikeScore', 'Distance to U of A (km)', 'rent2024'
+]]
+
+#  Normalize the features
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(clustering_features)
+
+# map the user input to weights for each feature
+# Convert user_input keys to match actual DataFrame column names
+resolved_user_input = {}
+
+for key, value in user_input.items():
+    # If the key is in the column_map, use the mapped name
+    if key in column_map:
+        resolved_user_input[column_map[key]] = value
+    else:
+        resolved_user_input[key] = value  # for rent2019, rent2020, etc.
+
+# resolved_user_input should have keys that match clustering_features.columns
+weights = np.array([resolved_user_input[col] for col in clustering_features.columns])
+weighted_features = scaled_features * weights
+
+# Optional: Elbow method to decide best k
+inertia = []
+for k in range(1, 12):
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
+    kmeans.fit(scaled_features)
+    inertia.append(kmeans.inertia_)
+
+# Save elbow plot
+plt.figure(figsize=(8, 4))
+plt.plot(range(1, 12), inertia, marker='o')
+plt.title('Elbow Method for Optimal k')
+plt.xlabel('Number of Clusters')
+plt.ylabel('Inertia')
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("elbow_plot.png")
+plt.close()
+
+# Fit final model with k=4 (or change this after checking elbow plot)
+kmeans = KMeans(n_clusters=30, random_state=42, n_init='auto')
+#df['Cluster'] = kmeans.fit_predict(scaled_features)
+df['Cluster'] = kmeans.fit_predict(weighted_features)
+
+# View clusters
+print("\n Neighborhoods by Cluster:")
+print(df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster'))
+
+# Apply PCA for 2D visualization
+pca = PCA(n_components=2)
+pca_result = pca.fit_transform(scaled_features)
+df['pca1'] = pca_result[:, 0]
+df['pca2'] = pca_result[:, 1]
+
+# Save PCA cluster scatterplot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x='pca1', y='pca2', hue='Cluster', palette='tab10', s=80)
+plt.title("Neighborhood Clusters (PCA Projection)")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("clusters.png")
+plt.close()
+
+#print(df)
+
+#Cluster interpretation summary
+summary = df.groupby('Cluster')[[
+   'rent2019', 'rent2020', 'rent2021', 'rent2022', 'rent2023', 'CrimeRate',
+     'WalkScore', 'TransitScore','BikeScore', 'Distance to U of A (km)', 'rent2024'
+]].mean().round(2)
+
+# print("\nCluster Summary:")
+# print(summary)
+
+# Print sample neighborhoods from each cluster
+for i in range(30):  # Adjust based on actual number of clusters
+    print(f"\nCluster {i} neighborhoods:")
+    print(df[df['Cluster'] == i]['NeighbourhoodName'].unique()) 
+
+# save the neighborhood names (as one col) with the cluster numbers (as another col)
+neighborhoods_clusters = df[['NeighbourhoodName', 'Cluster']].drop_duplicates().sort_values('Cluster')
+# Save the neighborhoods and clusters to a CSV file
+neighborhoods_clusters.to_csv('neighborhoods_clusters.csv', index=False)
+# Print confirmation
+print("saved cluster csv")
+
+
+#  Drop clustering columns before model training to avoid prediction errors
+df.drop(columns=['Cluster', 'pca1', 'pca2'], inplace=True, errors='ignore')
+
+
+
+#%% 
+# save the clustering model
+kmeans_model_path = 'kmeans_model.pkl'
+import joblib
+joblib.dump(kmeans, kmeans_model_path)
+
+joblib.dump(scaler, 'scaler.pkl')
+joblib.dump(weights, 'feature_weights.npy')
+# Print confirmation
+print(f"KMeans saved")
+
+#%%
+# labels = ['Very Low', 'Low', 'Neutral', 'High', 'Very High']
+# df['Distance_UofA'], bins = pd.qcut(df['Distance to U of A (km)'], q=5, labels=labels, retbins=True)
+# print(bins)
+
+
 
  #%%
 def get_bounds(column_name, user_rating, reverse=False):
@@ -349,7 +373,7 @@ columns = [
     'rent2023', 'CrimeRate', 'WalkScore', 'TransitScore', 'BikeScore', 'Distance to U of A (km)'
 ]
 combo_df = combo_df[columns]
-print(combo_df)
+#print(combo_df)
 
 
 
@@ -436,8 +460,11 @@ print(hypothetical_neighborhoods)
 # use the kmeans saved kmeans model to predict the cluster for each hypothetical neighborhood
 # load the saved model
 kmeans = joblib.load('/Users/mylayambao/resiSense/models/kmeans_model.pkl')
+scaler = joblib.load('scaler.pkl')
+#weights = np.load('/Users/mylayambao/resiSense/feature_weights.npy')
 # predict clusters for the hypothetical neighborhoods
 hypothetical_neighborhoods_scaled = scaler.transform(hypothetical_neighborhoods)
+hypothetical_neighborhoods_scaled = hypothetical_neighborhoods_scaled * weights
 print(hypothetical_neighborhoods_scaled)
 hypothetical_neighborhoods['Cluster'] = kmeans.predict(hypothetical_neighborhoods_scaled)
 # print the hypothetical neighborhoods with clusters
@@ -493,6 +520,8 @@ for cluster in top_3_clusters:
     for neighborhood in neighborhoods_in_cluster:
         print(neighborhood)
 
-# Save the recommended neighborhoods to a CSV file with uppercase neighborhood names
-recommended_neighborhoods['NeighbourhoodName'] = recommended_neighborhoods['NeighbourhoodName'].str.upper()
-recommended_neighborhoods[['NeighbourhoodName', 'RecommendationScore']].to_csv('recommended_neighborhoods.csv', index=False)
+# save the recommended neighborhoods to a csv file
+recommended_neighborhoods.to_csv('recommended_neighborhoods.csv', index=False)
+
+
+# %%
