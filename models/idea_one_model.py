@@ -502,26 +502,38 @@ print(cluster_counts)
 
 # %%
 # get the top 3 recommended clusters
-top_3_clusters = cluster_counts.nlargest(3).index.tolist()
+top_5_clusters = cluster_counts.nlargest(5).index.tolist()
 
 # get the neighborhoods in those clusters
 df_cluster = pd.read_csv('/Users/mylayambao/resiSense/neighborhoods_clusters.csv')
-recommended_neighborhoods = df_cluster[df_cluster['Cluster'].isin(top_3_clusters)]
+recommended_neighborhoods = df_cluster[df_cluster['Cluster'].isin(top_5_clusters)]
 
 # assign recommendation scores based on cluster rank
-recommendation_scores = {cluster: 3 - rank for rank, cluster in enumerate(top_3_clusters)}
+recommendation_scores = {cluster: 5 - rank for rank, cluster in enumerate(top_5_clusters)}
 recommended_neighborhoods['RecommendationScore'] = recommended_neighborhoods['Cluster'].map(recommendation_scores)
 
 # Print the recommended neighborhoods
 print("\nTop 3 Recommended Clusters and Neighborhoods:")
-for cluster in top_3_clusters:
+for cluster in top_5_clusters:
     print(f"\nCluster {cluster}:")
     neighborhoods_in_cluster = recommended_neighborhoods[recommended_neighborhoods['Cluster'] == cluster]['NeighbourhoodName'].tolist()
     for neighborhood in neighborhoods_in_cluster:
         print(neighborhood)
 
-# save the recommended neighborhoods to a csv file
+
+# Add the rent2024 column by merging with the original dataframe
+recommended_neighborhoods = recommended_neighborhoods.merge(
+    df[['NeighbourhoodName', 'rent2024']], 
+    on='NeighbourhoodName', 
+    how='left'
+)
+# save the recommended neighborhoods (with uppercase letters) to a csv file
+recommended_neighborhoods['NeighbourhoodName'] = recommended_neighborhoods['NeighbourhoodName'].str.upper()
+
+
 recommended_neighborhoods.to_csv('recommended_neighborhoods.csv', index=False)
+
+
 
 
 # %%
